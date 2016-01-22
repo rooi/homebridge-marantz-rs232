@@ -25,7 +25,8 @@ module.exports = function(homebridge) {
         this.log = log;
         
         this.serialPort = new SerialPort(this.path, {
-                                        baudrate: 9600
+                                        baudrate: 9600,
+                                        parser: serialport.parsers.readline("\n")
                                         }, false); // this is the openImmediately flag [default is true]
     }
     
@@ -73,7 +74,7 @@ module.exports = function(homebridge) {
                 console.log('open');
                 that.serialPort.on('data', function(data) {
                     that.serialPort.close(); // close after response
-                    callback(data.toString('hex'),0);
+                    callback(data,0);
                 });
                 that.serialPort.write(command, function(err, results) {
                     that.serialPort.drain();

@@ -83,7 +83,7 @@ module.exports = function(homebridge) {
                                       
                     setTimeout(function () {
                         if(that.serialPort.isOpen()) that.serialPort.close(); // close after response
-                        callback(0,0);
+                        //callback(0,0);
                     }, 1000);
                     //callback(results,err);
                 });

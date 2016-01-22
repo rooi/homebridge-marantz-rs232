@@ -72,12 +72,12 @@ module.exports = function(homebridge) {
             } else {
                 console.log('open');
                 that.serialPort.on('data', function(data) {
-                    callback(data,0);
                     that.serialPort.close(); // close after response
+                    callback(data,0);
                 });
                 that.serialPort.write(command, function(err, results) {
                     that.serialPort.drain();
-                    callback(results,err);
+                    //callback(results,err);
                 });
             }
         });

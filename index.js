@@ -175,7 +175,7 @@ module.exports = function(homebridge) {
                          //VOL:xxxy(xxx)
                          if(response.indexOf("@VOL:") > -1) {
                             var vol = 0;
-                            if(if(response.indexOf("+") > -1) vol = response.substring(6,2);
+                            if(response.indexOf("+") > -1) vol = response.substring(6,2);
                             else vol = response.substring(5,2);
                          
                             callback(null, Number(vol));

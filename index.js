@@ -83,7 +83,7 @@ module.exports = function(homebridge) {
                                       
                     setTimeout(function () {
                         that.serialPort.close(); // close after response
-                        callback(data,0);
+                        callback(0,0);
                     }, 1000);
                     //callback(results,err);
                 });
@@ -131,7 +131,7 @@ module.exports = function(homebridge) {
                          }
                          }.bind(this));
     },
-/*
+
     getMuteState: function(callback) {
         var cmd = "@AMT:?\r";
         
@@ -208,7 +208,7 @@ module.exports = function(homebridge) {
                          }
                          }.bind(this));
     },
-*/
+
     getServices: function() {
         var that = this;
         
@@ -225,18 +225,18 @@ module.exports = function(homebridge) {
         .on('get', this.getPowerState.bind(this))
         .on('set', this.setPowerState.bind(this));
 
-        //var audioDeviceServie = new MarantzAVR.AudioDeviceService("Audio Functions");
-        //audioDeviceServie
-        //.getCharacteristic(MarantzAVR.Muting)
-        //.on('get', this.getMuteState.bind(this))
-        //.on('set', this.setMuteState.bind(this));
+        var audioDeviceServie = new MarantzAVR.AudioDeviceService("Audio Functions");
+        audioDeviceServie
+        .getCharacteristic(MarantzAVR.Muting)
+        .on('get', this.getMuteState.bind(this))
+        .on('set', this.setMuteState.bind(this));
         
-        //audioDeviceServie
-        //.getCharacteristic(MarantzAVR.AudioVolume)
-        //.on('get', this.getVolume.bind(this))
-        //.on('set', this.setVolume.bind(this));
+        audioDeviceServie
+        .getCharacteristic(MarantzAVR.AudioVolume)
+        .on('get', this.getVolume.bind(this))
+        .on('set', this.setVolume.bind(this));
 
-        return [informationService, switchService];//, audioDeviceServie];
+        return [informationService, switchService, audioDeviceServie];
     }
     }
 }

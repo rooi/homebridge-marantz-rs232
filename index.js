@@ -29,6 +29,8 @@ module.exports = function(homebridge) {
         
         this.log = log;
         
+        this.volume = minVolume;
+        
         this.serialPort = new SerialPort(this.path, {
                                         baudrate: 9600,
                                         parser: serialport.parsers.readline("\r")
@@ -219,6 +221,7 @@ module.exports = function(homebridge) {
                                 console.log("-");
                                 vol = response.substring(5,8);
                             }
+                            this.volume = Number(vol);
                             console.log("vol=" + vol);
                             callback(null, Number(vol));
                          }
@@ -229,12 +232,15 @@ module.exports = function(homebridge) {
     },
  
     setVolume: function(value, callback) {
-        var cmd = "@VOL:0";
-        if(value > 0) cmd = cmd + "+";
-        cmd = cmd + value;
-        cmd = cmd + "\r";
         
-        this.exec(cmd, function(response, error) {
+        if(this.volume != value) {
+            this.volume = value;
+            var cmd = "@VOL:0";
+            if(value > 0) cmd = cmd + "+";
+            cmd = cmd + value;
+            cmd = cmd + "\r";
+        
+            this.exec(cmd, function(response, error) {
                          if (error) {
                          this.log('Serial volume function failed: %s');
                          callback(error);
@@ -244,6 +250,7 @@ module.exports = function(homebridge) {
                          callback();
                          }
                          }.bind(this));
+        }
     },
 
     getServices: function() {

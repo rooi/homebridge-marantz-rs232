@@ -127,16 +127,11 @@ module.exports = function(homebridge) {
     },
         
     getMuteState: function(callback) {
-        var url;
-        url = this.get_url;
+        var cmd = "@AMT:?\r";
         
-        this.httpRequest(url, "GET", function(error, response, body) {
-                         json = parser.toJson(body);
-                         jsonObject = JSON.parse(json);
+        this.sendCommand(cmd, function(error, response, body) {
                          
-                         response = jsonObject.item.Mute.value;
-                         
-                         if (response === "on") {
+                         if (response === "@ATT:2\r") {
                          callback(null, true);
                          }
                          else {
@@ -147,49 +142,47 @@ module.exports = function(homebridge) {
                          }.bind(this))
         
     },
-/*
+
     setMuteState: function(muteOn, callback) {
-        var url;
+        var cmd;
         
         if (muteOn) {
-            url = this.mute_on;
+            cmd = "@AMT:2\r";
             this.log(this.name, "muted");
         }
         else {
-            url = this.mute_off;
+            cmd = "@AMT:1\r";
             this.log(this.name, "unmuted");
         }
         
-        this.httpRequest(url, "GET", function(error, response, body) {
+        this.sendCommand(cmd, function(error, response, body) {
                          if (error) {
-                         this.log('HTTP mute function failed: %s');
+                         this.log('Serial mute function failed: %s');
                          callback(error);
                          }
                          else {
-                         this.log('HTTP mute function succeeded!');
+                         this.log('Serial mute function succeeded!');
                          callback();
                          }
                          }.bind(this));
     },
         
     getVolume: function(callback) {
-        var url;
-        url = this.get_url;
+        var cmd = "@VOL:?\r";
         
-        this.httpRequest(url, "GET", function(error, response, body) {
-                         json = parser.toJson(body);
-                         jsonObject = JSON.parse(json);
+        this.sendCommand(cmd, function(error, response, body) {
                          
-                         response = jsonObject.item.MasterVolume.value;
+                         //VOL:xxxy(xxx)
+                         var vol = response.substring(7,2);
                          
-                         callback(null, Number(response));
+                         callback(null, Number(vol));
                          
                          this.log("MasterVolume is:", response);
                          
                          }.bind(this))
         
     },
-        
+ /*
     setVolume: function(value, callback) {
         url = this.volume_url + value
         

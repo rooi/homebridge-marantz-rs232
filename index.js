@@ -126,7 +126,7 @@ module.exports = function(homebridge) {
                          }
                          }.bind(this));
     },
-        
+/*
     getMuteState: function(callback) {
         var cmd = "@AMT:?\r";
         
@@ -203,7 +203,7 @@ module.exports = function(homebridge) {
                          }
                          }.bind(this));
     },
-
+*/
     getServices: function() {
         var that = this;
         

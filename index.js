@@ -251,6 +251,10 @@ module.exports = function(homebridge) {
                          }
                          }.bind(this));
         }
+        else {
+            this.log("Volume has not changed");
+            callback();
+        }
     },
 
     getServices: function() {

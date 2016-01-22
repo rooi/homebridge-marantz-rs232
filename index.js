@@ -23,7 +23,7 @@ module.exports = function(homebridge) {
         maxVolume = config['maxVolume'];
         minVolume = config['minVolume'];
         
-        this.timeout = config.timeout || 500;
+        this.timeout = config.timeout || 1000;
         this.queue = [];
         this.ready = true;
         
@@ -98,10 +98,10 @@ module.exports = function(homebridge) {
                 that.serialPort.write(command, function(err, results) {
                     that.serialPort.drain();
                                       
-                    setTimeout(function () {
-                        if(that.serialPort.isOpen()) that.serialPort.close(); // close after response
-                        //callback(0,0);
-                    }, 1000);
+                    //setTimeout(function () {
+                    //    if(that.serialPort.isOpen()) that.serialPort.close(); // close after response
+                    //    //callback(0,0);
+                    //}, 1000);
                     //callback(results,err);
                 });
             }

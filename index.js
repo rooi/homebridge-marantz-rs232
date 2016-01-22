@@ -23,6 +23,10 @@ module.exports = function(homebridge) {
         minVolume = config['minVolume'];
         
         this.log = log;
+        
+        this.serialPort = new SerialPort(this.path, {
+                                        baudrate: 9600
+                                        }, false); // this is the openImmediately flag [default is true]
     }
     
     // Custom Characteristics and service...
@@ -62,18 +66,18 @@ module.exports = function(homebridge) {
     sendCommand: function(command, callback) {
         var that = this;
         
-        serialPort.open(function (error) {
+        that.serialPort.open(function (error) {
             if ( error ) {
                 that.log('failed to open: '+error);
             } else {
                 console.log('open');
-                serialPort.on('data', function(data) {
+                that.serialPort.on('data', function(data) {
                     callback(data,0);
-                    serialPort.close(); // close after response
+                    that.serialPort.close(); // close after response
                 });
-                serialPort.write(command, function(err, results) {
+                that.serialPort.write(command, function(err, results) {
                     serialPort.drain();
-                    callback(results,err);
+                    that.callback(results,err);
                 });
             }
         });

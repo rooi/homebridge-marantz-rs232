@@ -179,7 +179,7 @@ module.exports = function(homebridge) {
         this.sendCommand(cmd, function(response, error) {
                          
                          //VOL:xxxy(xxx)
-                         if(response.indexOf("@VOL:") > -1) {
+                         if(response && response.indexOf("@VOL:") > -1) {
                             var vol = 0;
                             if(response.indexOf("+") > -1) vol = response.substring(6,2);
                             else vol = response.substring(5,2);

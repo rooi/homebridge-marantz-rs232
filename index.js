@@ -173,7 +173,7 @@ module.exports = function(homebridge) {
         this.sendCommand(cmd, function(error, response, body) {
                          
                          //VOL:xxxy(xxx)
-                         var vol = response.substring(7,2);
+                         var vol = response.substring(6,2);
                          
                          callback(null, Number(vol));
                          
@@ -182,13 +182,15 @@ module.exports = function(homebridge) {
                          }.bind(this))
         
     },
- /*
+ 
     setVolume: function(value, callback) {
-        url = this.volume_url + value
+        var cmd = "@VOL:0";
+        if(value > 0) cmd = cmd + "+";
+        cmd = cmd + value;
         
-        this.httpRequest(url, "GET", function(error, response, body) {
+        this.sendCommand(cmd, "GET", function(error, response, body) {
                          if (error) {
-                         this.log('HTTP volume function failed: %s');
+                         this.log('Serial volume function failed: %s');
                          callback(error);
                          }
                          else {
@@ -197,7 +199,7 @@ module.exports = function(homebridge) {
                          }
                          }.bind(this));
     },
-*/
+
     getServices: function() {
         var that = this;
         
@@ -213,7 +215,7 @@ module.exports = function(homebridge) {
         .getCharacteristic(Characteristic.On)
         .on('get', this.getPowerState.bind(this))
         .on('set', this.setPowerState.bind(this));
-/*
+
         var audioDeviceServie = new MarantzAVR.AudioDeviceService("Audio Functions");
         audioDeviceServie
         .getCharacteristic(MarantzAVR.Muting)
@@ -224,8 +226,8 @@ module.exports = function(homebridge) {
         .getCharacteristic(MarantzAVR.AudioVolume)
         .on('get', this.getVolume.bind(this))
         .on('set', this.setVolume.bind(this));
-*/
-        return [informationService, switchService];//, audioDeviceServie];
+
+        return [informationService, switchService, audioDeviceServie];
     }
     }
 }

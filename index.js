@@ -43,7 +43,7 @@ module.exports = function(homebridge) {
                       format: Characteristic.Formats.FLOAT,
                       maxValue: maxVolume,
                       minValue: minVolume,
-                      minStep: 0.5,
+                      minStep: 1.0,
                       perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
                       });
         this.value = this.getDefaultValue();
@@ -76,7 +76,7 @@ module.exports = function(homebridge) {
         
     exec: function() {
         // Check if the queue has a reasonable size
-        if(this.queue.length > 10) this.queue.clear();
+        if(this.queue.length > 5) this.queue.clear();
             
         this.queue.push(arguments);
         this.process();
@@ -125,7 +125,7 @@ module.exports = function(homebridge) {
         
         this.exec(cmd, function(response,error) {
                          
-                         if (response === "@PWR:2\r") {
+                         if (response && response.indexOf("@PWR:2") > -1) {
                          callback(null, true);
                          }
                          else {
@@ -166,7 +166,7 @@ module.exports = function(homebridge) {
         
         this.exec(cmd, function(response, error) {
                          
-                         if (response === "@ATT:2\r") {
+                         if (response && response.indexOf("@ATT:2") > -1) {
                          callback(null, true);
                          }
                          else {

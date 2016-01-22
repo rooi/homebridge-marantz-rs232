@@ -73,7 +73,7 @@ module.exports = function(homebridge) {
             if ( error ) {
                 that.log('failed to open: '+error);
             } else {
-                console.log('open');
+                console.log('open and write command ' + command);
                 that.serialPort.on('data', function(data) {
                     that.serialPort.close(); // close after response
                     callback(data,0);

@@ -75,14 +75,14 @@ module.exports = function(homebridge) {
             } else {
                 console.log('open and write command ' + command);
                 that.serialPort.on('data', function(data) {
-                    that.serialPort.close(); // close after response
+                    if(that.serialPort.isOpen()) that.serialPort.close(); // close after response
                     callback(data,0);
                 });
                 that.serialPort.write(command, function(err, results) {
                     that.serialPort.drain();
                                       
                     setTimeout(function () {
-                        that.serialPort.close(); // close after response
+                        if(that.serialPort.isOpen()) that.serialPort.close(); // close after response
                         callback(0,0);
                     }, 1000);
                     //callback(results,err);

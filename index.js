@@ -180,10 +180,17 @@ module.exports = function(homebridge) {
                          
                          //VOL:xxxy(xxx)
                          if(response && response.indexOf("@VOL:") > -1) {
+                            console.log("response.indexOf(\"@VOL:\") > -1");
                             var vol = 0;
-                            if(response.indexOf("+") > -1) vol = response.substring(6,2);
-                            else vol = response.substring(5,2);
-                         
+                            if(response.indexOf("+") > -1) {
+                                console.log("+");
+                                vol = response.substring(6,2);
+                            }
+                            else {
+                                console.log("-");
+                                vol = response.substring(5,2);
+                            }
+                            console.log("vol=" + vol);
                             callback(null, Number(vol));
                          }
                          else callback(null,0);

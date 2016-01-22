@@ -173,10 +173,11 @@ module.exports = function(homebridge) {
         this.sendCommand(cmd, function(error, response, body) {
                          
                          //VOL:xxxy(xxx)
-                         var vol = response.substring(6,2);
+                         if(response) {
+                            var vol = response.substring(6,2);
                          
-                         callback(null, Number(vol));
-                         
+                            callback(null, Number(vol));
+                         }
                          this.log("MasterVolume is:", response);
                          
                          }.bind(this))

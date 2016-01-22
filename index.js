@@ -129,7 +129,7 @@ module.exports = function(homebridge) {
     getMuteState: function(callback) {
         var cmd = "@AMT:?\r";
         
-        this.sendCommand(cmd, function(error, response, body) {
+        this.sendCommand(cmd, function(response, error) {
                          
                          if (response === "@ATT:2\r") {
                          callback(null, true);
@@ -155,7 +155,7 @@ module.exports = function(homebridge) {
             this.log(this.name, "unmuted");
         }
         
-        this.sendCommand(cmd, function(error, response, body) {
+        this.sendCommand(cmd, function(response, error) {
                          if (error) {
                          this.log('Serial mute function failed: %s');
                          callback(error);
@@ -169,8 +169,8 @@ module.exports = function(homebridge) {
         
     getVolume: function(callback) {
         var cmd = "@VOL:?\r";
-        callback(null,0);/*
-        this.sendCommand(cmd, function(error, response, body) {
+        
+        this.sendCommand(cmd, function(response, error) {
                          
                          //VOL:xxxy(xxx)
                          if(response.indexOf("@VOL:") > -1) {
@@ -184,7 +184,6 @@ module.exports = function(homebridge) {
                          this.log("MasterVolume is:", response);
                          
                          }.bind(this))
-        */
     },
  
     setVolume: function(value, callback) {
@@ -192,7 +191,7 @@ module.exports = function(homebridge) {
         if(value > 0) cmd = cmd + "+";
         cmd = cmd + value;
         
-        this.sendCommand(cmd, function(error, response, body) {
+        this.sendCommand(cmd, function(response, error) {
                          if (error) {
                          this.log('Serial volume function failed: %s');
                          callback(error);

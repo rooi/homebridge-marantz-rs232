@@ -203,6 +203,7 @@ module.exports = function(homebridge) {
         var cmd = "@VOL:0";
         if(value > 0) cmd = cmd + "+";
         cmd = cmd + value;
+        cmd = cmd + "\r";
         
         this.sendCommand(cmd, function(response, error) {
                          if (error) {

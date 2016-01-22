@@ -80,6 +80,11 @@ module.exports = function(homebridge) {
                 });
                 that.serialPort.write(command, function(err, results) {
                     that.serialPort.drain();
+                                      
+                    setTimeout(function () {
+                        that.serialPort.close(); // close after response
+                        callback(data,0);
+                    }, 1000);
                     //callback(results,err);
                 });
             }

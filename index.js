@@ -68,7 +68,7 @@ module.exports = function(homebridge) {
     sendCommand: function(command, callback) {
         var that = this;
         
-        if(that.serialPort.isOpen()) that.serialPort.close();
+        //if(that.serialPort.isOpen()) that.serialPort.close();
         that.serialPort.open(function (error) {
             if ( error ) {
                 that.log('failed to open: '+error);

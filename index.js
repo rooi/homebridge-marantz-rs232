@@ -77,7 +77,7 @@ module.exports = function(homebridge) {
                 });
                 that.serialPort.write(command, function(err, results) {
                     that.serialPort.drain();
-                    that.callback(results,err);
+                    callback(results,err);
                 });
             }
         });

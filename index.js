@@ -169,7 +169,7 @@ module.exports = function(homebridge) {
         
     getVolume: function(callback) {
         var cmd = "@VOL:?\r";
-        
+        callback(null,0);/*
         this.sendCommand(cmd, function(error, response, body) {
                          
                          //VOL:xxxy(xxx)
@@ -184,7 +184,7 @@ module.exports = function(homebridge) {
                          this.log("MasterVolume is:", response);
                          
                          }.bind(this))
-        
+        */
     },
  
     setVolume: function(value, callback) {

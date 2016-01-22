@@ -15,7 +15,7 @@ Configuration sample:
  ```
 "platforms": [
         {
-          "platform": "Mararantz",
+          "platform": "Mararantz-RS232",
           "name": "Receiver",
           "path": "/dev/cu.usbserial-FTH7QVHK",
         }   

@@ -1,5 +1,6 @@
 // Accessory for controlling Marantz AVR via HomeKit
 
+var inherits = require('util').inherits;
 var SerialPort = require("serialport").SerialPort
 var Service, Characteristic;
 

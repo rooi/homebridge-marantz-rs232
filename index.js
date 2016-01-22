@@ -192,7 +192,7 @@ module.exports = function(homebridge) {
         if(value > 0) cmd = cmd + "+";
         cmd = cmd + value;
         
-        this.sendCommand(cmd, "GET", function(error, response, body) {
+        this.sendCommand(cmd, function(error, response, body) {
                          if (error) {
                          this.log('Serial volume function failed: %s');
                          callback(error);

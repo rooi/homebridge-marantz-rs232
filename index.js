@@ -68,6 +68,7 @@ module.exports = function(homebridge) {
     sendCommand: function(command, callback) {
         var that = this;
         
+        if(!that.serialPort.isOpen()) {
         that.serialPort.open(function (error) {
             if ( error ) {
                 that.log('failed to open: '+error);
@@ -83,6 +84,7 @@ module.exports = function(homebridge) {
                 });
             }
         });
+        }
     },
         
     getPowerState: function(callback) {

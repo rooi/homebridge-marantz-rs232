@@ -228,7 +228,7 @@ module.exports = function(homebridge) {
         
         audioDeviceServie
         .getCharacteristic(MarantzAVR.AudioVolume)
-        .on('get', this.getVolume.bind(this))
+        //.on('get', this.getVolume.bind(this))
         .on('set', this.setVolume.bind(this));
 
         return [informationService, switchService, audioDeviceServie];

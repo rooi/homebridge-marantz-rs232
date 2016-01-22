@@ -76,7 +76,7 @@ module.exports = function(homebridge) {
                     that.serialPort.close(); // close after response
                 });
                 that.serialPort.write(command, function(err, results) {
-                    serialPort.drain();
+                    that.serialPort.drain();
                     that.callback(results,err);
                 });
             }

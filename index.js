@@ -184,11 +184,11 @@ module.exports = function(homebridge) {
                             var vol = 0;
                             if(response.indexOf("+") > -1) {
                                 console.log("+");
-                                vol = response.substring(6,2);
+                                vol = response.substring(6,8);
                             }
                             else {
                                 console.log("-");
-                                vol = response.substring(5,2);
+                                vol = response.substring(5,8);
                             }
                             console.log("vol=" + vol);
                             callback(null, Number(vol));

@@ -23,6 +23,10 @@ module.exports = function(homebridge) {
         maxVolume = config['maxVolume'];
         minVolume = config['minVolume'];
         
+        this.timeout = config.timeout || 500;
+        this.queue = [];
+        this.ready = true;
+        
         this.log = log;
         
         this.serialPort = new SerialPort(this.path, {
@@ -65,6 +69,19 @@ module.exports = function(homebridge) {
     
     MarantzAVR.prototype = {
         
+    send: function(cmd, callback) {
+        this.sendCommand(cmd, callback);
+        //if (callback) callback();
+    },
+        
+    exec: function() {
+        // Check if the queue has a reasonable size
+        if(this.queue.length > 10) this.queue.clear();
+            
+        this.queue.push(arguments);
+        this.process();
+    },
+        
     sendCommand: function(command, callback) {
         var that = this;
         
@@ -91,10 +108,22 @@ module.exports = function(homebridge) {
         });
     },
         
+    process: function() {
+        if (this.queue.length === 0) return;
+        if (!this.ready) return;
+        var self = this;
+        this.ready = false;
+        this.send.apply(this, this.queue.shift());
+        setTimeout(function () {
+                    self.ready = true;
+                    self.process();
+                    }, this.timeout);
+    },
+        
     getPowerState: function(callback) {
         var cmd = "@PWR:?\r";
         
-        this.sendCommand(cmd, function(response,error) {
+        this.exec(cmd, function(response,error) {
                          
                          if (response === "@PWR:2\r") {
                          callback(null, true);
@@ -120,7 +149,7 @@ module.exports = function(homebridge) {
             this.log("Set", this.name, "to off");
         }
         
-        this.sendCommand(cmd, function(response,error) {
+        this.exec(cmd, function(response,error) {
                          if (error) {
                          this.log('Serial power function failed: %s');
                          callback(error);
@@ -135,7 +164,7 @@ module.exports = function(homebridge) {
     getMuteState: function(callback) {
         var cmd = "@AMT:?\r";
         
-        this.sendCommand(cmd, function(response, error) {
+        this.exec(cmd, function(response, error) {
                          
                          if (response === "@ATT:2\r") {
                          callback(null, true);
@@ -161,7 +190,7 @@ module.exports = function(homebridge) {
             this.log(this.name, "unmuted");
         }
         
-        this.sendCommand(cmd, function(response, error) {
+        this.exec(cmd, function(response, error) {
                          if (error) {
                          this.log('Serial mute function failed: %s');
                          callback(error);
@@ -176,7 +205,7 @@ module.exports = function(homebridge) {
     getVolume: function(callback) {
         var cmd = "@VOL:?\r";
         
-        this.sendCommand(cmd, function(response, error) {
+        this.exec(cmd, function(response, error) {
                          
                          //VOL:xxxy(xxx)
                          if(response && response.indexOf("@VOL:") > -1) {
@@ -205,7 +234,7 @@ module.exports = function(homebridge) {
         cmd = cmd + value;
         cmd = cmd + "\r";
         
-        this.sendCommand(cmd, function(response, error) {
+        this.exec(cmd, function(response, error) {
                          if (error) {
                          this.log('Serial volume function failed: %s');
                          callback(error);

@@ -73,7 +73,7 @@ module.exports = function(homebridge) {
                 console.log('open');
                 that.serialPort.on('data', function(data) {
                     that.serialPort.close(); // close after response
-                    callback(data,0);
+                    callback(data.toString('hex'),0);
                 });
                 that.serialPort.write(command, function(err, results) {
                     that.serialPort.drain();

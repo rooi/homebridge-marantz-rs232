@@ -226,10 +226,10 @@ module.exports = function(homebridge) {
         .on('get', this.getMuteState.bind(this))
         .on('set', this.setMuteState.bind(this));
         
-        audioDeviceServie
-        .getCharacteristic(MarantzAVR.AudioVolume)
+        //audioDeviceServie
+        //.getCharacteristic(MarantzAVR.AudioVolume)
         //.on('get', this.getVolume.bind(this))
-        .on('set', this.setVolume.bind(this));
+        //.on('set', this.setVolume.bind(this));
 
         return [informationService, switchService, audioDeviceServie];
     }

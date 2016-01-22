@@ -1,7 +1,8 @@
 // Accessory for controlling Marantz AVR via HomeKit
 
 var inherits = require('util').inherits;
-var SerialPort = require("serialport").SerialPort
+var serialport = require("serialport");
+var SerialPort = serialport.SerialPort; // localize object constructor
 var Service, Characteristic;
 
 // need to be global to be used in constructor
@@ -26,7 +27,7 @@ module.exports = function(homebridge) {
         
         this.serialPort = new SerialPort(this.path, {
                                         baudrate: 9600,
-                                        parser: SerialPort.parsers.readline("\n")
+                                        parser: serialport.parsers.readline("\n")
                                         }, false); // this is the openImmediately flag [default is true]
     }
     

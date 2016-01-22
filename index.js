@@ -219,18 +219,18 @@ module.exports = function(homebridge) {
         .on('get', this.getPowerState.bind(this))
         .on('set', this.setPowerState.bind(this));
 
-        var audioDeviceServie = new MarantzAVR.AudioDeviceService("Audio Functions");
-        audioDeviceServie
-        .getCharacteristic(MarantzAVR.Muting)
-        .on('get', this.getMuteState.bind(this))
-        .on('set', this.setMuteState.bind(this));
+        //var audioDeviceServie = new MarantzAVR.AudioDeviceService("Audio Functions");
+        //audioDeviceServie
+        //.getCharacteristic(MarantzAVR.Muting)
+        //.on('get', this.getMuteState.bind(this))
+        //.on('set', this.setMuteState.bind(this));
         
         //audioDeviceServie
         //.getCharacteristic(MarantzAVR.AudioVolume)
         //.on('get', this.getVolume.bind(this))
         //.on('set', this.setVolume.bind(this));
 
-        return [informationService, switchService, audioDeviceServie];
+        return [informationService, switchService];//, audioDeviceServie];
     }
     }
 }

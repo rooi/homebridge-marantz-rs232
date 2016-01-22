@@ -26,7 +26,7 @@ module.exports = function(homebridge) {
         
         this.serialPort = new SerialPort(this.path, {
                                         baudrate: 9600,
-                                        parser: serialport.parsers.readline("\n")
+                                        parser: SerialPort.parsers.readline("\n")
                                         }, false); // this is the openImmediately flag [default is true]
     }
     

@@ -152,15 +152,15 @@ module.exports = function(homebridge) {
         }
         
         this.exec(cmd, function(response,error) {
-                         if (error) {
-                         this.log('Serial power function failed: %s');
-                         callback(error);
-                         }
-                         else {
-                         this.log('Serial power function succeeded!');
-                         callback();
-                         }
-                         }.bind(this));
+            if (error) {
+                this.log('Serial power function failed: %s');
+                if(callback) callback(error);
+            }
+            else {
+                this.log('Serial power function succeeded!');
+                if(callback) callback();
+            }
+        }.bind(this));
     },
 
     getMuteState: function(callback) {
@@ -255,6 +255,30 @@ module.exports = function(homebridge) {
             this.log("Volume has not changed");
             callback();
         }
+    },
+        
+    toggleTestTone: function(callback) {
+        
+        var cmd = "@TTO:0\r";
+            
+        this.exec(cmd, function(response, error) {
+            if (error) {
+                this.log('Serial volume function failed: %s');
+                if(callback) callback(error);
+            }
+            else {
+                this.log("Toggle test tone");
+                if(callback) callback();
+            }
+        }.bind(this));
+    },
+        
+    identify: function(callback) {
+        this.log("Identify requested!");
+        
+        this.setPowerState(true); // turn on
+        this.toggleTestTone();
+        this.toggleTestTone(callback);
     },
 
     getServices: function() {

@@ -33,8 +33,9 @@ module.exports = function(homebridge) {
         
         this.serialPort = new SerialPort(this.path, {
                                         baudrate: 9600,
-                                        parser: serialport.parsers.readline("\r")
-                                        }, false); // this is the openImmediately flag [default is true]
+                                        parser: serialport.parsers.readline("\r"),
+                                         autoOpen: false
+                                        }); // this is the openImmediately flag [default is true]
     }
     
     // Custom Characteristics and service...
@@ -91,11 +92,12 @@ module.exports = function(homebridge) {
         that.serialPort.open(function (error) {
             if ( error ) {
                 that.log('failed to open: '+error);
+                if(callback) callback(0,1);
             } else {
                 console.log('open and write command ' + command);
                 that.serialPort.on('data', function(data) {
                     if(that.serialPort.isOpen()) that.serialPort.close(); // close after response
-                    callback(data,0);
+                    if(callback) callback(data,0);
                 });
                 that.serialPort.write(command, function(err, results) {
                     that.serialPort.drain();
@@ -125,17 +127,18 @@ module.exports = function(homebridge) {
     getPowerState: function(callback) {
         var cmd = "@PWR:?\r";
         
+        console.log("getPowerState");
+        
         this.exec(cmd, function(response,error) {
-                         
-                         if (response && response.indexOf("@PWR:2") > -1) {
-                         callback(null, true);
-                         }
-                         else {
-                         callback(null, false);
-                         }
-                         this.log("Power state is:", response);
-                         
-                         }.bind(this))
+                  
+            this.log("Power state is: " + response);
+            if (response && response.indexOf("@PWR:2") > -1) {
+                if(callback) callback(null, true);
+            }
+            else {
+                if(callback) callback(null, false);
+            }
+        }.bind(this))
         
     },
         
@@ -167,16 +170,15 @@ module.exports = function(homebridge) {
         var cmd = "@AMT:?\r";
         
         this.exec(cmd, function(response, error) {
-                         
-                         if (response && response.indexOf("@ATT:2") > -1) {
-                         callback(null, true);
-                         }
-                         else {
-                         callback(null, false);
-                         }
-                         this.log("Mute state is:", response);
-                         
-                         }.bind(this))
+             
+            this.log("Mute state is:", response);
+            if (response && response.indexOf("@ATT:2") > -1) {
+                callback(null, true);
+            }
+            else {
+                callback(null, false);
+            }
+        }.bind(this))
         
     },
 
@@ -193,15 +195,15 @@ module.exports = function(homebridge) {
         }
         
         this.exec(cmd, function(response, error) {
-                         if (error) {
-                         this.log('Serial mute function failed: %s');
-                         callback(error);
-                         }
-                         else {
-                         this.log('Serial mute function succeeded!');
-                         callback();
-                         }
-                         }.bind(this));
+            if (error) {
+                this.log('Serial mute function failed: %s');
+                callback(error);
+            }
+            else {
+                this.log('Serial mute function succeeded!');
+                callback();
+            }
+        }.bind(this));
     },
         
     getVolume: function(callback) {
@@ -210,25 +212,24 @@ module.exports = function(homebridge) {
         this.exec(cmd, function(response, error) {
                          
                          //VOL:xxxy(xxx)
-                         if(response && response.indexOf("@VOL:") > -1) {
-                            console.log("response.indexOf(\"@VOL:\") > -1");
-                            var vol = 0;
-                            if(response.indexOf("+") > -1) {
-                                console.log("+");
-                                vol = response.substring(6,8);
-                            }
-                            else {
-                                console.log("-");
-                                vol = response.substring(5,8);
-                            }
-                            this.volume = Number(vol);
-                            console.log("vol=" + vol);
-                            callback(null, Number(vol));
-                         }
-                         else callback(null,0);
-                         this.log("MasterVolume is:", response);
-                         
-                         }.bind(this))
+            this.log("MasterVolume is:", response);
+            if(response && response.indexOf("@VOL:") > -1) {
+                console.log("response.indexOf(\"@VOL:\") > -1");
+                var vol = 0;
+                if(response.indexOf("+") > -1) {
+                    console.log("+");
+                    vol = response.substring(6,8);
+                }
+                else {
+                    console.log("-");
+                    vol = response.substring(5,8);
+                }
+                this.volume = Number(vol);
+                console.log("vol=" + vol);
+                callback(null, Number(vol));
+            }
+            else callback(null,0);
+        }.bind(this))
     },
  
     setVolume: function(value, callback) {
@@ -241,20 +242,52 @@ module.exports = function(homebridge) {
             cmd = cmd + "\r";
         
             this.exec(cmd, function(response, error) {
-                         if (error) {
-                         this.log('Serial volume function failed: %s');
-                         callback(error);
-                         }
-                         else {
-                         this.log("Set volume to", value, "db");
-                         callback();
-                         }
-                         }.bind(this));
+                if (error) {
+                    this.log('Serial volume function failed: %s');
+                    callback(error);
+                }
+                else {
+                    this.log("Set volume to", value, "db");
+                    callback();
+                }
+            }.bind(this));
         }
         else {
             this.log("Volume has not changed");
             callback();
         }
+    },
+        
+    increaseVolumeState: function(callback) {
+        
+        var cmd = "@VOL:1\r";
+        
+        this.exec(cmd, function(response, error) {
+            if (error) {
+                this.log('Serial increase volume function failed: %s');
+                callback(error);
+            }
+            else {
+                this.log("Increasing volume");
+                this.audioDeviceService.getCharacteristic(MarantzAVR.AudioVolume).getValue(callback);
+            }
+        }.bind(this));
+    },
+        
+    decreaseVolumeState: function(callback) {
+        
+        var cmd = "@VOL:2\r";
+        
+        this.exec(cmd, function(response, error) {
+            if (error) {
+                this.log('Serial decrease volume function failed: %s');
+                callback(error);
+            }
+            else {
+                this.log("Decreasing volume");
+                this.audioDeviceService.getCharacteristic(MarantzAVR.AudioVolume).getValue(callback);
+            }
+        }.bind(this));
     },
         
     toggleTestTone: function(callback) {
@@ -279,6 +312,8 @@ module.exports = function(homebridge) {
         this.setPowerState(true); // turn on
         this.toggleTestTone();
         this.toggleTestTone(callback);
+        
+        if(callback) callback();
     },
 
     getServices: function() {
@@ -297,18 +332,30 @@ module.exports = function(homebridge) {
         .on('get', this.getPowerState.bind(this))
         .on('set', this.setPowerState.bind(this));
 
-        var audioDeviceServie = new MarantzAVR.AudioDeviceService("Audio Functions");
-        audioDeviceServie
+        var audioDeviceService = new MarantzAVR.AudioDeviceService("Audio Functions");
+        audioDeviceService
         .getCharacteristic(MarantzAVR.Muting)
         .on('get', this.getMuteState.bind(this))
         .on('set', this.setMuteState.bind(this));
         
-        audioDeviceServie
+        this.audioDeviceService = audioDeviceService;
+        
+        audioDeviceService
         .getCharacteristic(MarantzAVR.AudioVolume)
         .on('get', this.getVolume.bind(this))
         .on('set', this.setVolume.bind(this));
-
-        return [informationService, switchService, audioDeviceServie];
+        /*
+        var increaseVolumeSwitchService = new Service.StatelessProgrammableSwitch("Increase Volume","Increase");
+        increaseVolumeSwitchService
+        .getCharacteristic(Characteristic.ProgrammableSwitchEvent)
+        .on('get', this.increaseVolumeState.bind(this));
+        
+        var decreaseVolumeSwitchService = new Service.StatelessProgrammableSwitch("Decrease Volume", "Decrease");
+        decreaseVolumeSwitchService
+        .getCharacteristic(Characteristic.ProgrammableSwitchEvent)
+        .on('set', this.decreaseVolumeState.bind(this));
+         */
+        return [informationService, switchService, audioDeviceService];//, increaseVolumeSwitchService, decreaseVolumeSwitchService];
     }
     }
-}
+};

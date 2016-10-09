@@ -25,6 +25,7 @@ module.exports = function(homebridge) {
         
         this.timeout = config.timeout || 1000;
         this.queue = [];
+        this.callbackQueue = [];
         this.ready = true;
         
         this.log = log;
@@ -36,6 +37,17 @@ module.exports = function(homebridge) {
                                         parser: serialport.parsers.readline("\r"),
                                          autoOpen: false
                                         }); // this is the openImmediately flag [default is true]
+        
+        this.serialPort.on('data', function(data) {
+            this.log("Received data: " + data);
+            this.serialPort.close(function(error) {
+                this.log("Closing connection");
+                if(error) this.log("Error when closing connection: " + error)
+                var callback;
+                if(this.callbackQueue.length) callback = this.callbackQueue.shift()
+                if(callback) callback(data,0);
+            }.bind(this)); // close after response
+        }.bind(this));
     }
     
     // Custom Characteristics and service...
@@ -79,27 +91,58 @@ module.exports = function(homebridge) {
         
     exec: function() {
         // Check if the queue has a reasonable size
-        if(this.queue.length > 5) this.queue.clear();
-            
+        if(this.queue.length > 50) {
+            this.queue.clear();
+            this.callbackQueue.clear();
+        }
+        
         this.queue.push(arguments);
         this.process();
     },
-        
+
+    sendCommand: function(command, callback) {
+        this.log("serialPort.open");
+        this.serialPort.open(function (error) {
+            if(error) this.log("Error when opening serialport: " + error);
+                             
+            if(callback) this.callbackQueue.push(callback);
+                             
+            this.serialPort.write(command, function(err) {
+                if(err) this.log("Write error = " + err);
+                //this.serialPort.drain();
+            }.bind(this));
+
+//            if(callback) callback(0,0);
+        }.bind(this));
+    },
+/*
     sendCommand: function(command, callback) {
         var that = this;
+        that.callback = callback;
         
         //if(that.serialPort.isOpen()) that.serialPort.close();
-        that.serialPort.open(function (error) {
+        that.log("Opening connection");
+        that.serialPort.open(function (error, callback) {
             if ( error ) {
                 that.log('failed to open: '+error);
                 if(callback) callback(0,1);
             } else {
                 console.log('open and write command ' + command);
-                that.serialPort.on('data', function(data) {
-                    if(that.serialPort.isOpen()) that.serialPort.close(); // close after response
-                    if(callback) callback(data,0);
+                that.serialPort.on('data', function(data, callback) {
+                    that.log("Received data: " + data);
+                    if(that.serialPort.isOpen) {
+                        that.serialPort.close(function(error,callback) {
+                            that.log("Closing connection");
+                            if(error) that.log("Error when closing connection: " + error)
+                            if(that.callback) that.callback(data,0);
+                        }); // close after response
+                    }
+                    else {
+                        if(callback) callback(data,0);
+                    }
                 });
                 that.serialPort.write(command, function(err, results) {
+                    if(err) that.log("Write error = " + err);
                     that.serialPort.drain();
                                       
                     //setTimeout(function () {
@@ -111,6 +154,7 @@ module.exports = function(homebridge) {
             }
         });
     },
+ */
         
     process: function() {
         if (this.queue.length === 0) return;
@@ -118,6 +162,7 @@ module.exports = function(homebridge) {
         var self = this;
         this.ready = false;
         this.send.apply(this, this.queue.shift());
+        
         setTimeout(function () {
                     self.ready = true;
                     self.process();
@@ -153,7 +198,9 @@ module.exports = function(homebridge) {
             cmd = "@PWR:1\r";
             this.log("Set", this.name, "to off");
         }
+        this.exec(cmd); // send without callback
         
+        cmd = "@PWR:?\r"; // get confirmation with callback
         this.exec(cmd, function(response,error) {
             if (error) {
                 this.log('Serial power function failed: %s');
@@ -193,7 +240,10 @@ module.exports = function(homebridge) {
             cmd = "@AMT:1\r";
             this.log(this.name, "unmuted");
         }
+        this.exec(cmd); // send without callback
         
+        cmd = "@AMT:?\r"; // get confirmation with callback
+
         this.exec(cmd, function(response, error) {
             if (error) {
                 this.log('Serial mute function failed: %s');
@@ -240,6 +290,10 @@ module.exports = function(homebridge) {
             if(value > 0) cmd = cmd + "+";
             cmd = cmd + value;
             cmd = cmd + "\r";
+            
+            this.exec(cmd); // send without callback
+            
+            cmd = "@VOL:?\r"; // get confirmation with callback
         
             this.exec(cmd, function(response, error) {
                 if (error) {
@@ -262,6 +316,10 @@ module.exports = function(homebridge) {
         
         var cmd = "@VOL:1\r";
         
+        this.exec(cmd); // send without callback
+        
+        cmd = "@VOL:?\r"; // get confirmation with callback
+        
         this.exec(cmd, function(response, error) {
             if (error) {
                 this.log('Serial increase volume function failed: %s');
@@ -278,6 +336,10 @@ module.exports = function(homebridge) {
         
         var cmd = "@VOL:2\r";
         
+        this.exec(cmd); // send without callback
+        
+        cmd = "@VOL:?\r"; // get confirmation with callback
+        
         this.exec(cmd, function(response, error) {
             if (error) {
                 this.log('Serial decrease volume function failed: %s');
@@ -293,7 +355,11 @@ module.exports = function(homebridge) {
     toggleTestTone: function(callback) {
         
         var cmd = "@TTO:0\r";
-            
+        
+        this.exec(cmd); // send without callback
+        
+        cmd = "@VOL:?\r"; // get confirmation with callback
+        
         this.exec(cmd, function(response, error) {
             if (error) {
                 this.log('Serial volume function failed: %s');

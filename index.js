@@ -250,39 +250,60 @@ module.exports = function(homebridge) {
                   }.bind(this));
     },
         
+    dbToPercentage: function(db) {
+        this.log("dbToPercentage");
+        var minMaxDiff = maxVolume - minVolume;
+        this.log("db = " + db);
+        var percentage = 100.0 * (db - minVolume) / minMaxDiff;
+        this.log("percentage = " + percentage);
+        return percentage;
+    },
+        
+    percentageToDb: function(percentage) {
+        this.log("percentageToDb");
+        var minMaxDiff = maxVolume - minVolume;
+        this.log("percentage = " + percentage);
+        var db = 0.01 * percentage * minMaxDiff + minVolume;
+        if(db > maxVolume) db = maxVolume;
+        if(db < minVolume) db = minVolume;
+        this.log("db = " + db);
+        return db;
+    },
+        
     getVolume: function(callback) {
         var cmd = "@VOL:?\r";
         
         this.exec(cmd, function(response, error) {
                   
-                  //VOL:xxxy(xxx)
-                  this.log("MasterVolume is:", response);
-                  if(response && response.indexOf("@VOL:") > -1) {
+            //VOL:xxxy(xxx)
+            this.log("MasterVolume is:", response);
+            if(response && response.indexOf("@VOL:") > -1) {
                   console.log("response.indexOf(\"@VOL:\") > -1");
                   var vol = 0;
                   if(response.indexOf("+") > -1) {
-                  console.log("+");
-                  vol = response.substring(6,8);
+                    console.log("+");
+                    vol = response.substring(6,8);
                   }
                   else {
-                  console.log("-");
-                  vol = response.substring(5,8);
+                    console.log("-");
+                    vol = response.substring(5,8);
                   }
-                  this.volume = Number(vol);
+                  this.volume = this.dbToPercentage(Number(vol));
                   console.log("vol=" + vol);
                   callback(null, Number(vol));
-                  }
-                  else callback(null,0);
-                  }.bind(this))
+            }
+            else callback(null,0);
+        }.bind(this))
     },
         
     setVolume: function(value, callback) {
         
+        var db = this.percentageToDb(value);
         if(this.volume != value) {
             this.volume = value;
             var cmd = "@VOL:0";
-            if(value > 0) cmd = cmd + "+";
-            cmd = cmd + value;
+            if(db > 0) cmd = cmd + "+";
+            cmd = cmd + parseInt(db*10.0);
             cmd = cmd + "\r";
             
             this.exec(cmd, function(response, error) {
@@ -291,7 +312,7 @@ module.exports = function(homebridge) {
                       callback(error);
                       }
                       else {
-                      this.log("Set volume to", value, "db");
+                      this.log("Set volume to", db, "db");
                       callback();
                       }
                       }.bind(this));
@@ -380,6 +401,19 @@ module.exports = function(homebridge) {
         .on('get', this.getPowerState.bind(this))
         .on('set', this.setPowerState.bind(this));
         
+        var speakerService = new Service.Speaker("Speaker");
+        speakerService
+        .getCharacteristic(Characteristic.Mute)
+        .on('get', this.getMuteState.bind(this))
+        .on('set', this.setMuteState.bind(this));
+
+        speakerService
+        .getCharacteristic(Characteristic.Volume)
+        .on('get', this.getVolume.bind(this))
+        .on('set', this.setVolume.bind(this));
+
+        
+        /*
         var audioDeviceService = new MarantzAVR.AudioDeviceService("Audio Functions");
         audioDeviceService
         .getCharacteristic(MarantzAVR.Muting)
@@ -392,6 +426,7 @@ module.exports = function(homebridge) {
         .getCharacteristic(MarantzAVR.AudioVolume)
         .on('get', this.getVolume.bind(this))
         .on('set', this.setVolume.bind(this));
+         */
         /*
          var increaseVolumeSwitchService = new Service.StatelessProgrammableSwitch("Increase Volume","Increase");
          increaseVolumeSwitchService
@@ -403,7 +438,7 @@ module.exports = function(homebridge) {
          .getCharacteristic(Characteristic.ProgrammableSwitchEvent)
          .on('set', this.decreaseVolumeState.bind(this));
          */
-        return [informationService, switchService, audioDeviceService];//, increaseVolumeSwitchService, decreaseVolumeSwitchService];
+        return [informationService, switchService, speakerService];//, increaseVolumeSwitchService, decreaseVolumeSwitchService];
     }
     }
 };

@@ -276,21 +276,19 @@ module.exports = function(homebridge) {
         this.exec(cmd, function(response, error) {
                   
             //VOL:xxxy(xxx)
-            this.log("MasterVolume is:", response);
             if(response && response.indexOf("@VOL:") > -1) {
-                  console.log("response.indexOf(\"@VOL:\") > -1");
                   var vol = 0;
                   if(response.indexOf("+") > -1) {
-                    console.log("+");
+                    //console.log("+");
                     vol = response.substring(6,8);
                   }
                   else {
-                    console.log("-");
+                    //console.log("-");
                     vol = response.substring(5,8);
                   }
                   this.volume = this.dbToPercentage(Number(vol));
-                  console.log("vol=" + vol);
-                  callback(null, Number(vol));
+                  //console.log("this.volume=" + this.volume);
+                  callback(null, Number(this.volume));
             }
             else callback(null,0);
         }.bind(this))

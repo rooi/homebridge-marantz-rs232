@@ -375,6 +375,74 @@ module.exports = function(homebridge) {
                   }.bind(this));
     },
         
+    getSourcePort: function(callback) {
+        var cmd = "@SRC:?\r";
+        
+        this.exec(cmd, function(response, error) {
+                  
+            //SRC:xx
+            this.log("MasterVolume is:", response);
+            if(response && response.indexOf("@SRC:") > -1) {
+                  console.log("response.indexOf(\"@SRC:\") > -1");
+                
+                  var src = response.substring(5,6);
+                
+                  var srcNr = 0;
+                  if(src == 'A') srcNr = 10;
+                  else if(src == 'B') srcNr = 11;
+                  else if(src == 'C') srcNr = 12;
+                  else if(src == 'D') srcNr = 13;
+                  else if(src == 'E') srcNr = 14;
+                  else if(src == 'F') srcNr = 15;
+                  else if(src == 'G') srcNr = 16;
+                  else if(src == 'H') srcNr = 17;
+                  else if(src == 'I') srcNr = 18;
+                  else if(src == 'J') srcNr = 19;
+                  else if(src == 'K') srcNr = 20;
+                  else if(src == 'L') srcNr = 21;
+                  else if(src == 'M') srcNr = 22;
+                  else if(src == 'N') srcNr = 23;
+                  else srcNr = Number(src);
+
+                  console.log("src =" + src + " srcNr = " + srcNr);
+                  callback(null, srcNr);
+            }
+            else callback(null,0);
+        }.bind(this))
+    },
+        
+    setSourcePort: function(port, callback) {
+        var cmd = "@SRC:";
+        
+        if (port < 10) cmd = cmd + port + "\r";
+        else if(port == 10) cmd = cmd + 'A' + "\r";
+        else if(port == 11) cmd = cmd + 'B' + "\r";
+        else if(port == 12) cmd = cmd + 'C' + "\r";
+        else if(port == 13) cmd = cmd + 'D' + "\r";
+        else if(port == 14) cmd = cmd + 'E' + "\r";
+        else if(port == 15) cmd = cmd + 'F' + "\r";
+        else if(port == 16) cmd = cmd + 'G' + "\r";
+        else if(port == 17) cmd = cmd + 'H' + "\r";
+        else if(port == 18) cmd = cmd + 'I' + "\r";
+        else if(port == 19) cmd = cmd + 'J' + "\r";
+        else if(port == 20) cmd = cmd + 'K' + "\r";
+        else if(port == 21) cmd = cmd + 'L' + "\r";
+        else if(port == 22) cmd = cmd + 'M' + "\r";
+        else if(port == 23) cmd = cmd + 'N' + "\r";
+        else cmd = cmd + 0 + "\r";
+        
+        this.exec(cmd, function(response, error) {
+            if (error) {
+                this.log('Set Source function failed: ' + error);
+                callback(error);
+            }
+            else {
+                this.log('Set Source function succeeded!');
+                callback();
+            }
+        }.bind(this));
+    },
+        
     identify: function(callback) {
         this.log("Identify requested!");
         
@@ -411,6 +479,13 @@ module.exports = function(homebridge) {
         .getCharacteristic(Characteristic.Volume)
         .on('get', this.getVolume.bind(this))
         .on('set', this.setVolume.bind(this));
+        
+        makeHSourceCharacteristic();
+        
+        switchService
+        .addCharacteristic(SourceCharacteristic)
+        .on('get', this.getSourcePort.bind(this))
+        .on('set', this.setSourcePort.bind(this));
 
         
         /*
@@ -442,3 +517,21 @@ module.exports = function(homebridge) {
     }
     }
 };
+
+function makeHSourceCharacteristic() {
+    
+    SourceCharacteristic = function () {
+        Characteristic.call(this, 'Source', '212131F4-2E14-4FF4-AE13-C97C3232499E');
+        this.setProps({
+                      format: Characteristic.Formats.INT,
+                      unit: Characteristic.Units.NONE,
+                      maxValue: 23,
+                      minValue: 0,
+                      minStep: 1,
+                      perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
+                      });
+        this.value = this.getDefaultValue();
+    };
+    
+    inherits(SourceCharacteristic, Characteristic);
+}

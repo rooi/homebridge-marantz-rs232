@@ -328,15 +328,15 @@ module.exports = function(homebridge) {
         var cmd = "@VOL:1\r";
         
         this.exec(cmd, function(response, error) {
-                  if (error) {
-                  this.log('Serial increase volume function failed: %s');
-                  callback(error);
-                  }
-                  else {
-                  this.log("Increasing volume");
-                  this.audioDeviceService.getCharacteristic(MarantzAVR.AudioVolume).getValue(callback);
-                  }
-                  }.bind(this));
+            if (error) {
+                this.log('Serial increase volume function failed: ' + error);
+                callback(error);
+            }
+            else {
+                this.log("Increasing volume");
+                this.audioDeviceService.getCharacteristic(MarantzAVR.AudioVolume).getValue(callback);
+            }
+        }.bind(this));
     },
         
     decreaseVolumeState: function(callback) {
@@ -344,15 +344,15 @@ module.exports = function(homebridge) {
         var cmd = "@VOL:2\r";
         
         this.exec(cmd, function(response, error) {
-                  if (error) {
-                  this.log('Serial decrease volume function failed: %s');
-                  callback(error);
-                  }
-                  else {
-                  this.log("Decreasing volume");
-                  this.audioDeviceService.getCharacteristic(MarantzAVR.AudioVolume).getValue(callback);
-                  }
-                  }.bind(this));
+            if (error) {
+                this.log('Serial decrease volume function failed: ' + error);
+                callback(error);
+            }
+            else {
+                this.log("Decreasing volume");
+                this.audioDeviceService.getCharacteristic(MarantzAVR.AudioVolume).getValue(callback);
+            }
+        }.bind(this));
     },
         
     toggleTestTone: function(callback) {
@@ -381,10 +381,8 @@ module.exports = function(homebridge) {
         this.exec(cmd, function(response, error) {
                   
             //SRC:xx
-            this.log("MasterVolume is:", response);
             if(response && response.indexOf("@SRC:") > -1) {
-                  console.log("response.indexOf(\"@SRC:\") > -1");
-                
+                  
                   var src = response.substring(5,6);
                 
                   var srcNr = 0;
@@ -502,18 +500,18 @@ module.exports = function(homebridge) {
         .on('get', this.getVolume.bind(this))
         .on('set', this.setVolume.bind(this));
          */
-        /*
-         var increaseVolumeSwitchService = new Service.StatelessProgrammableSwitch("Increase Volume","Increase");
-         increaseVolumeSwitchService
-         .getCharacteristic(Characteristic.ProgrammableSwitchEvent)
-         .on('get', this.increaseVolumeState.bind(this));
+        
+        var increaseVolumeSwitchService = new Service.StatelessProgrammableSwitch("Increase Volume","Increase");
+        increaseVolumeSwitchService
+        .getCharacteristic(Characteristic.ProgrammableSwitchEvent)
+        .on('set', this.increaseVolumeState.bind(this));
          
-         var decreaseVolumeSwitchService = new Service.StatelessProgrammableSwitch("Decrease Volume", "Decrease");
-         decreaseVolumeSwitchService
-         .getCharacteristic(Characteristic.ProgrammableSwitchEvent)
-         .on('set', this.decreaseVolumeState.bind(this));
-         */
-        return [informationService, switchService, speakerService];//, increaseVolumeSwitchService, decreaseVolumeSwitchService];
+        var decreaseVolumeSwitchService = new Service.StatelessProgrammableSwitch("Decrease Volume", "Decrease");
+        decreaseVolumeSwitchService
+        .getCharacteristic(Characteristic.ProgrammableSwitchEvent)
+        .on('set', this.decreaseVolumeState.bind(this));
+        
+        return [informationService, switchService, speakerService, increaseVolumeSwitchService, decreaseVolumeSwitchService];
     }
     }
 };

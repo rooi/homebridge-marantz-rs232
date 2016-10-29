@@ -52,7 +52,7 @@ module.exports = function(homebridge) {
     // Custom Characteristics and service...
     MarantzAVR.AudioVolume = function() {
         Characteristic.call(this, 'Volume', '00001001-0000-1000-8000-135D67EC4377');
-        console.log("Maximum Volume", maxVolume);
+        this.log("Maximum Volume", maxVolume);
         this.setProps({
                       format: Characteristic.Formats.FLOAT,
                       maxValue: maxVolume,
@@ -173,7 +173,7 @@ module.exports = function(homebridge) {
     getPowerState: function(callback) {
         var cmd = "@PWR:?\r";
         
-        console.log("getPowerState");
+        this.log("getPowerState");
         
         this.exec(cmd, function(response,error) {
                   
@@ -402,7 +402,7 @@ module.exports = function(homebridge) {
                   else if(src == 'N') srcNr = 23;
                   else srcNr = Number(src);
 
-                  console.log("src =" + src + " srcNr = " + srcNr);
+                  //console.log("src =" + src + " srcNr = " + srcNr);
                   callback(null, srcNr);
             }
             else callback(null,0);

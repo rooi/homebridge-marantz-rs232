@@ -102,15 +102,17 @@ module.exports = function(homebridge) {
     sendCommand: function(command, callback) {
         this.log("serialPort.open");
         this.serialPort.open(function (error) {
-                             if(error) this.log("Error when opening serialport: " + error);
-                             
-                             if(callback) this.callbackQueue.push(callback);
-                             
-                             this.serialPort.write(command, function(err) {
+                             if(error) {
+                                this.log("Error when opening serialport: " + error);
+                                if(callback) callback(error,error);
+                             }
+                             else {
+                                 if(callback) this.callbackQueue.push(callback);
+                                 this.serialPort.write(command, function(err) {
                                                    if(err) this.log("Write error = " + err);
                                                    //this.serialPort.drain();
                                                    }.bind(this));
-                             
+                             }
                              //            if(callback) callback(0,0);
                              }.bind(this));
     },

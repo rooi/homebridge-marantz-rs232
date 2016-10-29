@@ -103,13 +103,13 @@ module.exports = function(homebridge) {
         this.log("serialPort.open");
         if(this.serialPort.isOpen){
             this.log("serialPort is already open...");
-            if(callback) callback(1);
+            if(callback) callback(0,1);
         }
         else{
             this.serialPort.open(function (error) {
                              if(error) {
                                 this.log("Error when opening serialport: " + error);
-                                if(callback) callback(error);
+                                if(callback) callback(0,error);
                              }
                              else {
                                  if(callback) this.callbackQueue.push(callback);

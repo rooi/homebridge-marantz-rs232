@@ -101,7 +101,7 @@ module.exports = function(homebridge) {
         
     sendCommand: function(command, callback) {
         this.log("serialPort.open");
-        if(this.serialPort.isOpen){
+        if(this.serialPort.isOpen()){
             this.log("serialPort is already open...");
             if(callback) callback(0,1);
         }

@@ -329,36 +329,34 @@ module.exports = function(homebridge) {
         }
     },
         
-    increaseVolumeState: function(callback) {
+    volumeUpDownState: function(value, callback) {
         
-        var cmd = "@VOL:1\r";
+        var cmd = "@VOL:";
+        if(value >= 1) cmd += "1\r";
+        else cmd += "2\r";
         
-        this.exec(cmd, function(response, error) {
-            if (error) {
-                this.log('Serial increase volume function failed: ' + error);
-                callback(error);
-            }
-            else {
-                this.log("Increasing volume");
-                this.audioDeviceService.getCharacteristic(MarantzAVR.AudioVolume).getValue(callback);
-            }
-        }.bind(this));
-    },
+        if(value >= 1 && this.volume >= 100) {
+            this.log("Maximum volume reached");
+            callback(); // limit the volume
+        }
+        else if(value < 1 && this.volume <= 0) {
+            this.log("Minumum volume reached");
+            callback(); // limit the volume
+        }
+        else {
+            this.log('Executing: ' + cmd);
         
-    decreaseVolumeState: function(callback) {
-        
-        var cmd = "@VOL:2\r";
-        
-        this.exec(cmd, function(response, error) {
-            if (error) {
-                this.log('Serial decrease volume function failed: ' + error);
-                callback(error);
-            }
-            else {
-                this.log("Decreasing volume");
-                this.audioDeviceService.getCharacteristic(MarantzAVR.AudioVolume).getValue(callback);
-            }
-        }.bind(this));
+            this.exec(cmd, function(response, error) {
+                if (error) {
+                    this.log('Serial increase volume function failed: ' + error);
+                    callback(error);
+                }
+                else {
+                    this.log("Changing volume");
+                    this.speakerService.getCharacteristic(Characteristic.Volume).getValue(callback);
+                }
+            }.bind(this));
+        }
     },
         
     toggleTestTone: function(callback) {
@@ -484,6 +482,8 @@ module.exports = function(homebridge) {
         .on('get', this.getVolume.bind(this))
         .on('set', this.setVolume.bind(this));
         
+        this.speakerService = speakerService;
+        
         makeHSourceCharacteristic();
         
         switchService
@@ -507,17 +507,12 @@ module.exports = function(homebridge) {
         .on('set', this.setVolume.bind(this));
          */
         
-        var increaseVolumeSwitchService = new Service.StatelessProgrammableSwitch("Increase Volume","Increase");
-        increaseVolumeSwitchService
-        .getCharacteristic(Characteristic.ProgrammableSwitchEvent)
-        .on('set', this.increaseVolumeState.bind(this));
-         
-        var decreaseVolumeSwitchService = new Service.StatelessProgrammableSwitch("Decrease Volume", "Decrease");
-        decreaseVolumeSwitchService
-        .getCharacteristic(Characteristic.ProgrammableSwitchEvent)
-        .on('set', this.decreaseVolumeState.bind(this));
+        var volumeUpDownSwitchService = new Service.StatefulProgrammableSwitch("Volume Up/Down","Marantz VolumeUpDown");
+        volumeUpDownSwitchService
+        .getCharacteristic(Characteristic.ProgrammableSwitchOutputState)
+        .on('set', this.volumeUpDownState.bind(this));
         
-        return [informationService, switchService, speakerService, increaseVolumeSwitchService, decreaseVolumeSwitchService];
+        return [informationService, switchService, speakerService, volumeUpDownSwitchService];
     }
     }
 };

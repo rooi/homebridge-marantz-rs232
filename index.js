@@ -22,7 +22,7 @@ module.exports = function(homebridge) {
         maxVolume = config['maxVolume'];
         minVolume = config['minVolume'];
         
-        this.timeout = config.timeout || 100;
+        this.timeout = config.timeout || 1000;
         this.queue = [];
         this.callbackQueue = [];
         this.ready = true;
@@ -332,8 +332,8 @@ module.exports = function(homebridge) {
     volumeUpDownState: function(value, callback) {
         
         var cmd = "@VOL:";
-        if(value >= 1) cmd += "1\r";
-        else cmd += "2\r";
+        if(value >= 1) cmd += "3\r";
+        else cmd += "4\r";
         
         if(value >= 1 && this.volume >= 100) {
             this.log("Maximum volume reached");

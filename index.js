@@ -387,7 +387,7 @@ module.exports = function(homebridge) {
             //SRC:xx
             if(response && response.indexOf("@SRC:") > -1) {
                   
-                  var src = response.substring(5,6);
+                  var src = response.substring(6,7);
                 
                   var srcNr = 0;
                   if(src == 'A') srcNr = 10;

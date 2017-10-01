@@ -328,24 +328,34 @@ module.exports = function(homebridge) {
             callback();
         }
     },
+
+    getVolumeUpDownState: function(callback) {
+        if(callback) callback(null, 0);
+    },
         
-    volumeUpDownState: function(value, callback) {
+    setVolumeUpDownState: function(value, callback) {
         
         var cmd = "@VOL:";
-        if(value >= 1) cmd += "3\r";
+        if(value == 1) cmd += "1\r";
+        else if(value == 2) cmd += "3\r";
+        else if(value == -1) cmd += "2\r";
         else cmd += "4\r";
         
-        if(value >= 1 && this.volume >= 100) {
+        if(value == 0) {
+            this.log("Resetting volume up/down button");
+            callback();
+        }
+        else if(value > 0 && this.volume >= 100) {
             this.log("Maximum volume reached");
             callback(); // limit the volume
         }
-        else if(value < 1 && this.volume <= 0) {
+        else if(value < 0 && this.volume <= 0) {
             this.log("Minumum volume reached");
             callback(); // limit the volume
         }
         else {
             this.log('Executing: ' + cmd);
-        
+            
             this.exec(cmd, function(response, error) {
                 if (error) {
                     this.log('Serial increase volume function failed: ' + error);
@@ -353,6 +363,7 @@ module.exports = function(homebridge) {
                 }
                 else {
                     this.log("Changing volume");
+                    this.speakerService.getCharacteristic(UpDownCharacteristic).updateValue(0, undefined);
                     this.speakerService.getCharacteristic(Characteristic.Volume).getValue(callback);
                 }
             }.bind(this));
@@ -507,14 +518,35 @@ module.exports = function(homebridge) {
         .on('set', this.setVolume.bind(this));
          */
         
-        var volumeUpDownSwitchService = new Service.StatefulProgrammableSwitch("Volume Up/Down","Marantz VolumeUpDown");
-        volumeUpDownSwitchService
-        .getCharacteristic(Characteristic.ProgrammableSwitchOutputState)
-        .on('set', this.volumeUpDownState.bind(this));
+        makeUpDownCharacteristic();
         
-        return [informationService, switchService, speakerService, volumeUpDownSwitchService];
+        speakerService
+        .addCharacteristic(UpDownCharacteristic)
+        .on('get', this.getVolumeUpDownState.bind(this))
+        .on('set', this.setVolumeUpDownState.bind(this));
+ 
+        return [informationService, switchService, speakerService];
     }
     }
+};
+
+function makeUpDownCharacteristic() {
+    
+    UpDownCharacteristic = function () {
+        Characteristic.call(this, 'UpDown', '00001001-0000-1000-8000-12B419A49077');
+        this.setProps({
+                      format: Characteristic.Formats.INT,
+                      unit: Characteristic.Units.NONE,
+                      maxValue: 2,
+                      minValue: -2,
+                      minStep: 1,
+                      perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
+                      });
+        this.eventEnabled = true;
+        this.value = this.getDefaultValue();
+    };
+    
+    inherits(UpDownCharacteristic, Characteristic);
 };
 
 function makeHSourceCharacteristic() {
@@ -529,6 +561,7 @@ function makeHSourceCharacteristic() {
                       minStep: 1,
                       perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
                       });
+        this.eventEnabled = true;
         this.value = this.getDefaultValue();
     };
     

@@ -330,7 +330,7 @@ module.exports = function(homebridge) {
     },
 
     getVolumeUpDownState: function(callback) {
-        if(callback) callback(null, 0);
+        callback(null, 0);
     },
         
     setVolumeUpDownState: function(value, callback) {
@@ -363,8 +363,16 @@ module.exports = function(homebridge) {
                 }
                 else {
                     this.log("Changing volume");
-                    this.speakerService.getCharacteristic(UpDownCharacteristic).updateValue(0, undefined);
-                    this.speakerService.getCharacteristic(Characteristic.Volume).getValue(callback);
+                    var tagetChar = this.speakerService.getCharacteristic(UpDownCharacteristic);
+                    var targetCharVol = this.speakerService.getCharacteristic(Characteristic.Volume);
+                    //setTimeout(function(){
+                    //    tagetChar.setValue(0);
+                    //    targetCharVol.getValue(callback);
+                    //}, 100);
+                    targetCharVol.getValue(null);
+                      setTimeout(function(){tagetChar.setValue(0);}, 10);
+                    callback();
+                    //this.speakerService.getCharacteristic(Characteristic.Volume).getValue(callback);
                 }
             }.bind(this));
         }
@@ -542,7 +550,7 @@ function makeUpDownCharacteristic() {
                       minStep: 1,
                       perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
                       });
-        this.eventEnabled = true;
+        //this.eventEnabled = true;
         this.value = this.getDefaultValue();
     };
     
@@ -561,7 +569,7 @@ function makeHSourceCharacteristic() {
                       minStep: 1,
                       perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
                       });
-        this.eventEnabled = true;
+        //this.eventEnabled = true;
         this.value = this.getDefaultValue();
     };
     

@@ -4,6 +4,11 @@ var inherits = require('util').inherits;
 var SerialPort = require("serialport");
 var Service, Characteristic;
 
+// Use a `\r\n` as a line terminator
+const parser = new SerialPort.parsers.Readline({
+                                    delimiter: '\r\n'
+                                    });
+
 // need to be global to be used in constructor
 var maxVolume;
 var minVolume;
@@ -32,8 +37,7 @@ module.exports = function(homebridge) {
         this.volume = minVolume;
         
         this.serialPort = new SerialPort(this.path, {
-                                         baudrate: 9600,
-                                         parser: SerialPort.parsers.readline("\r"),
+                                         baudRate: 9600,
                                          autoOpen: false
                                          }); // this is the openImmediately flag [default is true]
         

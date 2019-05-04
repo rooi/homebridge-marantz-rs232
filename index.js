@@ -304,9 +304,47 @@ module.exports = function(homebridge) {
         callback(null, 0);
     },
         
+    getVolumeUpFastState: function(callback) {
+        callback(null, 0);
+    },
+        
+    getVolumeDownFastState: function(callback) {
+        callback(null, 0);
+    },
+        
     setVolumeUpState: function(value, callback) {
         
+        var cmd = "@VOL:1\r";
+        
+        var signedValue = value;
+        this.setVolumeState(cmd, signedValue, callback);
+    },
+        
+    setVolumeDownState: function(value, callback) {
+        
+        var cmd = "@VOL:2\r";
+        
+        var signedValue = -1 * value;
+        this.setVolumeState(cmd, signedValue, callback);
+    },
+
+    setVolumeUpFastState: function(value, callback) {
+        
         var cmd = "@VOL:3\r";
+        
+        var signedValue = value;
+        this.setVolumeState(cmd, signedValue, callback);
+    },
+        
+    setVolumeDownFastState: function(value, callback) {
+        
+        var cmd = "@VOL:4\r";
+        
+        var signedValue = -1 * value;
+        this.setVolumeState(cmd, signedValue, callback);
+    },
+        
+    setVolumeState: function(cmd, value, callback) {
         
         if(value == 0) {
             this.log("Resetting volume up/down button");
@@ -314,6 +352,10 @@ module.exports = function(homebridge) {
         }
         else if(value > 0 && this.volume >= 100) {
             this.log("Maximum volume reached");
+            callback(); // limit the volume
+        }
+        else if(value < 0 && this.volume <= 0) {
+            this.log("Minumum volume reached");
             callback(); // limit the volume
         }
         else {
@@ -329,39 +371,6 @@ module.exports = function(homebridge) {
                     var tagetChar = this.volumeUpSwitchService.getCharacteristic(Characteristic.On);
                     var targetCharVol = this.speakerService.getCharacteristic(Characteristic.Volume);
 
-                    targetCharVol.getValue(null);
-                    setTimeout(function(){tagetChar.setValue(0);}, 10);
-                    callback();
-                }
-            }.bind(this));
-        }
-    },
-
-    setVolumeDownState: function(value, callback) {
-        
-        var cmd = "@VOL:4\r";
-        
-        if(value == 0) {
-            this.log("Resetting volume up/down button");
-            callback();
-        }
-        else if(value > 0 && this.volume <= 0) {
-            this.log("Minumum volume reached");
-            callback(); // limit the volume
-        }
-        else {
-            this.log('Executing: ' + cmd);
-            
-            this.exec(cmd, function(response, error) {
-                if (error) {
-                    this.log('Serial increase volume function failed: ' + error);
-                    callback(error);
-                }
-                else {
-                    this.log("Changing volume");
-                    var tagetChar = this.volumeDownSwitchService.getCharacteristic(Characteristic.On);
-                    var targetCharVol = this.speakerService.getCharacteristic(Characteristic.Volume);
-                    
                     targetCharVol.getValue(null);
                     setTimeout(function(){tagetChar.setValue(0);}, 10);
                     callback();
@@ -517,8 +526,24 @@ module.exports = function(homebridge) {
         .on('set', this.setVolumeDownState.bind(this));
         
         this.volumeDownSwitchService = volumeDownSwitchService;
- 
-        return [informationService, switchService, speakerService, volumeUpSwitchService, volumeDownSwitchService];
+
+        var volumeUpFastSwitchService = new Service.Switch("Volume Up Fast", "volume_up_fast");
+        volumeUpFastSwitchService
+        .getCharacteristic(Characteristic.On)
+        .on('get', this.getVolumeUpFastState.bind(this))
+        .on('set', this.setVolumeUpFastState.bind(this));
+        
+        this.volumeUpFastSwitchService = volumeUpFastSwitchService;
+        
+        var volumeDownFastSwitchService = new Service.Switch("Volume Down Fast", "volume_down_fast");
+        volumeDownFastSwitchService
+        .getCharacteristic(Characteristic.On)
+        .on('get', this.getVolumeDownFastState.bind(this))
+        .on('set', this.setVolumeDownFastState.bind(this));
+        
+        this.volumeDownFastSwitchService = volumeDownFastSwitchService;
+        
+        return [informationService, switchService, speakerService, volumeUpSwitchService, volumeDownSwitchService, volumeUpFastSwitchService, volumeDownFastSwitchService];
     }
     }
 };

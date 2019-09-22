@@ -318,6 +318,9 @@ module.exports = function(homebridge) {
         
         var signedValue = value;
         this.setVolumeState(cmd, signedValue, callback);
+        
+        var targetChar = this.speakerService.getCharacteristic(VolumeUpCharacteristic);
+        if(value > 0) setTimeout(function(){targetChar.setValue(false);}, 300);
     },
         
     setVolumeDownState: function(value, callback) {
@@ -326,6 +329,9 @@ module.exports = function(homebridge) {
         
         var signedValue = -1 * value;
         this.setVolumeState(cmd, signedValue, callback);
+        
+        var targetChar = this.speakerService.getCharacteristic(VolumeDownCharacteristic);
+        if(value > 0) setTimeout(function(){targetChar.setValue(false);}, 300);
     },
 
     setVolumeUpFastState: function(value, callback) {
@@ -334,6 +340,9 @@ module.exports = function(homebridge) {
         
         var signedValue = value;
         this.setVolumeState(cmd, signedValue, callback);
+        
+        var targetChar = this.speakerService.getCharacteristic(VolumeUpFastCharacteristic);
+        if(value > 0) setTimeout(function(){targetChar.setValue(false);}, 300);
     },
         
     setVolumeDownFastState: function(value, callback) {
@@ -342,6 +351,9 @@ module.exports = function(homebridge) {
         
         var signedValue = -1 * value;
         this.setVolumeState(cmd, signedValue, callback);
+        
+        var targetChar = this.speakerService.getCharacteristic(VolumeDownFastCharacteristic);
+        if(value > 0) setTimeout(function(){targetChar.setValue(false);}, 300);
     },
         
     setVolumeState: function(cmd, value, callback) {
@@ -368,11 +380,9 @@ module.exports = function(homebridge) {
                 }
                 else {
                     this.log("Changing volume");
-                    var tagetChar = this.volumeUpSwitchService.getCharacteristic(Characteristic.On);
                     var targetCharVol = this.speakerService.getCharacteristic(Characteristic.Volume);
 
                     targetCharVol.getValue(null);
-                    setTimeout(function(){tagetChar.setValue(0);}, 10);
                     callback();
                 }
             }.bind(this));
@@ -491,6 +501,13 @@ module.exports = function(homebridge) {
         .on('get', this.getPowerState.bind(this))
         .on('set', this.setPowerState.bind(this));
         
+        makeHSourceCharacteristic();
+        
+        switchService
+        .addCharacteristic(SourceCharacteristic)
+        .on('get', this.getSourcePort.bind(this))
+        .on('set', this.setSourcePort.bind(this));
+        
         var speakerService = new Service.Speaker("Speaker");
         speakerService
         .getCharacteristic(Characteristic.Mute)
@@ -502,48 +519,31 @@ module.exports = function(homebridge) {
         .on('get', this.getVolume.bind(this))
         .on('set', this.setVolume.bind(this));
         
-        this.speakerService = speakerService;
+        makeHVolumeControlCharacteristic(homebridge);
         
-        makeHSourceCharacteristic();
-        
-        switchService
-        .addCharacteristic(SourceCharacteristic)
-        .on('get', this.getSourcePort.bind(this))
-        .on('set', this.setSourcePort.bind(this));
-        
-        var volumeUpSwitchService = new Service.Switch("Volume Up", "volume_up");
-        volumeUpSwitchService
-        .getCharacteristic(Characteristic.On)
+        speakerService
+        .addCharacteristic(VolumeUpCharacteristic)
         .on('get', this.getVolumeUpState.bind(this))
         .on('set', this.setVolumeUpState.bind(this));
-        
-        this.volumeUpSwitchService = volumeUpSwitchService;
-        
-        var volumeDownSwitchService = new Service.Switch("Volume Down", "volume_down");
-        volumeDownSwitchService
-        .getCharacteristic(Characteristic.On)
+
+        speakerService
+        .addCharacteristic(VolumeDownCharacteristic)
         .on('get', this.getVolumeDownState.bind(this))
         .on('set', this.setVolumeDownState.bind(this));
         
-        this.volumeDownSwitchService = volumeDownSwitchService;
-
-        var volumeUpFastSwitchService = new Service.Switch("Volume Up Fast", "volume_up_fast");
-        volumeUpFastSwitchService
-        .getCharacteristic(Characteristic.On)
+        speakerService
+        .addCharacteristic(VolumeUpFastCharacteristic)
         .on('get', this.getVolumeUpFastState.bind(this))
         .on('set', this.setVolumeUpFastState.bind(this));
         
-        this.volumeUpFastSwitchService = volumeUpFastSwitchService;
-        
-        var volumeDownFastSwitchService = new Service.Switch("Volume Down Fast", "volume_down_fast");
-        volumeDownFastSwitchService
-        .getCharacteristic(Characteristic.On)
+        speakerService
+        .addCharacteristic(VolumeDownFastCharacteristic)
         .on('get', this.getVolumeDownFastState.bind(this))
         .on('set', this.setVolumeDownFastState.bind(this));
         
-        this.volumeDownFastSwitchService = volumeDownFastSwitchService;
+        this.speakerService = speakerService;
         
-        return [informationService, switchService, speakerService, volumeUpSwitchService, volumeDownSwitchService, volumeUpFastSwitchService, volumeDownFastSwitchService];
+        return [informationService, switchService, speakerService];
     }
     }
 };
@@ -565,4 +565,61 @@ function makeHSourceCharacteristic() {
     };
     
     inherits(SourceCharacteristic, Characteristic);
+}
+
+function makeHVolumeControlCharacteristic(homebridge) {
+    
+    UUID = homebridge.hap.uuid;
+    
+    VolumeUpCharacteristic = function () {
+        var serviceUUID = UUID.generate('MarantzTypes:VolumeControl:VolumeUp');
+        Characteristic.call(this, 'Volume Up', serviceUUID);
+        this.setProps({
+                      format: Characteristic.Formats.BOOL,
+                      perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
+                      });
+        //this.eventEnabled = true;
+        this.value = this.getDefaultValue();
+    };
+    
+    inherits(VolumeUpCharacteristic, Characteristic);
+    
+    VolumeDownCharacteristic = function () {
+        var serviceUUID = UUID.generate('MarantzTypes:VolumeControl:VolumeDown');
+        Characteristic.call(this, 'Volume Down', serviceUUID);
+        this.setProps({
+                      format: Characteristic.Formats.BOOL,
+                      perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
+                      });
+        //this.eventEnabled = true;
+        this.value = this.getDefaultValue();
+    };
+    
+    inherits(VolumeDownCharacteristic, Characteristic);
+    
+    VolumeUpFastCharacteristic = function () {
+        var serviceUUID = UUID.generate('MarantzTypes:VolumeControl:VolumeUpFast');
+        Characteristic.call(this, 'Volume Up Fast', serviceUUID);
+        this.setProps({
+                      format: Characteristic.Formats.BOOL,
+                      perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
+                      });
+        //this.eventEnabled = true;
+        this.value = this.getDefaultValue();
+    };
+    
+    inherits(VolumeUpFastCharacteristic, Characteristic);
+    
+    VolumeDownFastCharacteristic = function () {
+        var serviceUUID = UUID.generate('MarantzTypes:VolumeControl:VolumeDownFast');
+        Characteristic.call(this, 'Volume Down Fast', serviceUUID);
+        this.setProps({
+                      format: Characteristic.Formats.BOOL,
+                      perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
+                      });
+        //this.eventEnabled = true;
+        this.value = this.getDefaultValue();
+    };
+    
+    inherits(VolumeDownFastCharacteristic, Characteristic);
 }

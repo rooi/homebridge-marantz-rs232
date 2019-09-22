@@ -1,6 +1,6 @@
 # homebridge-marantz-rs232
 Marantz rs232 receiver plugin for homebridge: https://github.com/nfarina/homebridge
-Note: This plugin communicates with Marantz receiver using rs-232 and is tested with the SR5004
+This plugin communicates with Marantz receiver using rs-232 and is tested with the SR5004. An usb to serial rs232 converter from [FTDI](https://www.ftdichip.com/Products/Cables/USBRS232.htm) is recommended. Cheaper converters may not function correctly.
 
 # Installation
 

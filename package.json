@@ -1,6 +1,6 @@
 {
   "name": "homebridge-marantz-rs232",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Marantz rs232 receiver plugin for homebridge: https://github.com/nfarina/homebridge",
   "license": "ISC",
   "keywords": [
@@ -11,10 +11,10 @@
     "url": "https://github.com/rooi/homebridge-marantz-rs232.git"
   },
   "engines": {
-    "node": ">=10.15.3",
+    "node": ">=12.16.2",
     "homebridge": ">=0.4.47"
   },
   "dependencies": {
-    "serialport": "^6.2.0"
+    "serialport": "~8.0.7"
   }
 }

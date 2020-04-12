@@ -5,7 +5,7 @@ This plugin communicates with Marantz receiver using rs-232 and is tested with t
 # Installation
 
 1. Install homebridge using: npm install -g homebridge
-2. Install this plugin using: npm install -g homebridge-marantz-rs232
+2. Install this plugin using: npm install -g homebridge-marantz-rs232  --unsafe-perm
 3. Update your configuration file. See the sample below.
 
 # Configuration

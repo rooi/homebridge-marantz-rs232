@@ -1,0 +1,33 @@
+{
+  "pluginAlias": "Marantz-RS232",
+  "pluginType": "accessory",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string",
+        "default": "Receiver",
+        "required": true
+      },
+      "path": {
+          "title": "Path",
+          "type": "string",
+          "default": "/dev/cu.usbserial-FTH7QVHK",
+          "required": true
+      },
+      "maxVolume": {
+        "title": "Maximum Volume",
+        "type": "float",
+        "default": -20.0,
+        "required": true
+      }
+      "minVolume": {
+          "title": "Minimum Volume",
+          "type": "float",
+          "default": -79.0,
+          "required": true
+      }
+    }
+  }
+}

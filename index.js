@@ -5,11 +5,6 @@ var SerialPort = require("serialport");
 var Service, Characteristic;
 //var Map = require("collections/map");
 
-// Use a `\r\n` as a line terminator
-const parser = new SerialPort.parsers.Readline({
-                                    delimiter: '\r'
-                                    });
-
 // need to be global to be used in constructor
 var maxVolume;
 var minVolume;
@@ -39,63 +34,74 @@ module.exports = function(homebridge) {
         
         this.serialPort = new SerialPort(this.path, {
                                          baudRate: 9600,
+                                         dataBits: 8,
+                                         stopBits: 1,
+                                         parity: 'none',
+                                         lock: true,
+                                         //highWaterMark: 7,
                                          autoOpen: false
                                          }); // this is the openImmediately flag [default is true]
         
-        this.serialPort.pipe(parser);
+        // Use a `\r\n` as a line terminator
+        this.parser = new SerialPort.parsers.Readline({
+                                                       delimiter: '\r'
+                                                       });
+
+        
+        this.serialPort.pipe(this.parser);
         
         // Prepare to kill pyshell
         process.on('SIGINT', () => { this.log("receive SIGINT. Closing"); this.close() })
         process.on('SIGTERM', () => { this.log("receive SIGTERM. Closing"); this.close() })
         
-        parser.on('open', function(data) {
-            this.log("Opened serialPort connection: " + data);
-        }.bind(this));
-        
-        parser.on('close', function(data) {
+        this.parser.on('close', function(data) {
             this.log("Closed serialPort connection: " + data);
             this.callbackMap.forEach(function(callback,key,map) {
                 if(callback) callback(0,1);
             });
         }.bind(this));
         
-        parser.on('error', function(data) {
+        this.parser.on('error', function(data) {
             this.log("SerialPort error: " + data);
         }.bind(this));
         
-        parser.on('drain', function(data) {
+        this.parser.on('drain', function(data) {
             this.log("SerialPort drain: " + data);
         }.bind(this));
         
-        parser.on('data', function(data) {
+        this.parser.on('open', function(dataOpen) {
+            this.log("Opened serialPort connection: " + dataOpen);
+        }.bind(this));
+        
+        this.parser.on('data', function(data) {
             this.log("Received data: " + data);
             
-            var reqData = data.substr(0, data.indexOf(":")+1) + "?\r";
-            //this.log.debug("reqData = " + reqData);
-                  
+            var cmd = data.substr(0, data.indexOf(":"));
+                       
             // Check if this is a responce to a command and send callback
             var callback = null;
-            if(this.callbackMap.has(data)) {
-                this.log.debug("callbackMap contains: " + data);
-                callback = this.callbackMap.get(data);
-                this.callbackMap.delete(data);
-            }
-            if(this.callbackMap.has(reqData)) {
-                this.log.debug("callbackMap contains: " + reqData);
-                callback = this.callbackMap.get(reqData);
-                this.callbackMap.delete(reqData);
+            if(this.callbackMap.has(cmd)) {
+                this.log.debug("callbackMap contains: " + cmd);
+                callback = this.callbackMap.get(cmd);
+                this.callbackMap.delete(cmd);
             }
                 
             if(callback) {
                 this.log.debug("Received data as a response to a command, sending callback: " + data);
                 callback(data);
+                this.log.debug("this.callbackMap.size = " + this.callbackMap.size);
+                this.callbackMap.forEach(function(callback,key,map){
+                    this.log.debug(key);
+                }.bind(this));
             }
             else {
                 this.log.warn("TODO: process response to other data");
             }
+                       
         }.bind(this));
         
-        this.open();
+        // Open the connection
+        setTimeout(function() {this.open();}.bind(this), 1000);
     }
     
     // Custom Characteristics and service...
@@ -156,28 +162,30 @@ module.exports = function(homebridge) {
             this.open();
         }
         
-        this.serialPort.write(command, function(err) {
+        this.serialPort.write(command);
+        this.serialPort.drain(function(err) {
             if(err) {
                 this.log.err("Write error = " + err);
             }
             else {
                 // write commands are buffered until the connection is opened.
                 if(callback) {
-                    this.log.debug("Storing command + callback in a map " + command);
-                    this.callbackMap.set(command,callback);
+                    var cmd = command.substr(0, command.indexOf(":"));
+                    this.log.debug("Storing command + callback in a map " + cmd);
+                    this.callbackMap.set(cmd,callback);
               
                     // Send error is no ack is receive within timeout
                     var self = this;
                     setTimeout(function () {
-                        if(self.callbackMap.has(command) &&
-                           callback == self.callbackMap.has(command)) {
+                        if(self.callbackMap.has(cmd) &&
+                           callback == self.callbackMap.has(cmd)) {
                             self.log.error("Timeout expired before acknowledgement.");
-                            self.log.error("    Sending error and Deleting from map. command =" + command);
+                            self.log.error("    Sending error and Deleting from map. reqData =" + cmd);
                             callback(1, new Error("No acknowledgement"));
-                            self.callbackMap.delete(command);
+                            self.callbackMap.delete(cmd);
                         }
                         else {
-                            self.log.debug("Timeout expired after acknowledgement. " + command);
+                            self.log.debug("Timeout expired after acknowledgement. " + cmd);
                         }
                     }, this.timeout);
                 }
@@ -207,9 +215,9 @@ module.exports = function(homebridge) {
                 if(callback) callback(0,error);
             }
             else {
-                if(callback) callback();
                 this.log("Set auto status feedback to full");
-                this.sendCommand("@AST:F\r");
+                setTimeout(function() {this.sendCommand("@AST:F\r");}.bind(this), 5000);
+                if(callback) callback();
             }
         }.bind(this));
     },

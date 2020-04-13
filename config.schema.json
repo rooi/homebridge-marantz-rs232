@@ -21,7 +21,7 @@
         "type": "float",
         "default": -20.0,
         "required": true
-      }
+      },
       "minVolume": {
           "title": "Minimum Volume",
           "type": "float",

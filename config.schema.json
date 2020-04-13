@@ -18,14 +18,14 @@
       },
       "maxVolume": {
         "title": "Maximum Volume",
-        "type": "float",
-        "default": -20.0,
+        "type": "integer",
+        "default": -20,
         "required": true
       },
       "minVolume": {
           "title": "Minimum Volume",
-          "type": "float",
-          "default": -79.0,
+          "type": "integer",
+          "default": -79,
           "required": true
       }
     }

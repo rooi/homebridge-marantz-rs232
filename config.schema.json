@@ -27,6 +27,12 @@
           "type": "integer",
           "default": -79,
           "required": true
+      },
+      "timeout": {
+          "title": "Timeout Between commands",
+          "type": "integer",
+          "default": 500,
+          "required": false
       }
     }
   }

@@ -158,8 +158,10 @@ module.exports = function(homebridge) {
         this.log("sendCommand: " + command);
         
         if(!this.serialPort.isOpen){
-            this.log.warn("serialPort is not open... open it");
-            this.open();
+            this.log.warn("serialPort is not open... trying to open it");
+            this.open(function(result, error) {
+                if(error && callback) callback(result,error);
+            });
         }
         
         this.serialPort.write(command);
@@ -212,12 +214,12 @@ module.exports = function(homebridge) {
         this.serialPort.open(function (error) {
             if(error) {
                 this.log.error("Error when opening serialport: " + error);
-                if(callback) callback(0,error);
+                if(callback) callback(0, error);
             }
             else {
                 this.log("Set auto status feedback to full");
                 setTimeout(function() {this.sendCommand("@AST:F\r");}.bind(this), 5000);
-                if(callback) callback();
+                if(callback) callback(1);
             }
         }.bind(this));
     },
